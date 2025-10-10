@@ -4,11 +4,14 @@ from openai import OpenAI
 
 MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
-# Инициализация клиента через переменные окружения (или явно передайте api_key в OpenAI(...))
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+def get_client() -> OpenAI:
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY is not set")
+    return OpenAI(api_key=api_key)
 
 def generate_post(topic: str, max_tokens: int = 1600) -> Dict[str, str]:
-    # 1) Заголовок
+    client = get_client()
     r_title = client.chat.completions.create(
         model=MODEL,
         messages=[{"role": "user", "content": f"Придумайте привлекательный заголовок для поста на тему: {topic}"}],
@@ -17,7 +20,6 @@ def generate_post(topic: str, max_tokens: int = 1600) -> Dict[str, str]:
     )
     title = r_title.choices[0].message.content.strip()
 
-    # 2) Мета-описание
     r_meta = client.chat.completions.create(
         model=MODEL,
         messages=[{"role": "user", "content": f"Напишите краткое информативное мета-описание для поста с заголовком: {title}"}],
@@ -26,7 +28,6 @@ def generate_post(topic: str, max_tokens: int = 1600) -> Dict[str, str]:
     )
     meta = r_meta.choices[0].message.content.strip()
 
-    # 3) Полный пост
     prompt_post = (
         f"Напишите подробный и увлекательный пост для блога на тему: {topic}. "
         f"Используйте короткие абзацы, подзаголовки (H2/H3), примеры и ключевые слова "
