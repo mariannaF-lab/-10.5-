@@ -3,3 +3,9 @@ __pycache__/
 .env
 *.pyc
 .DS_Store
+
+.env
+.env.*
+!.env.example
+*.sqlite3
+*.sqlite3-*
